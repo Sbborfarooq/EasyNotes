@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.EasyNotes" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="android:windowIsTranslucent">true</item>
+        <!-- Set status bar color to white -->
+        <item name="android:statusBarColor">@android:color/white</item>
+        <!-- Make the status bar icons dark for visibility on white background -->
+        <item name="android:windowLightStatusBar">true</item>
+
+        <!-- Add these lines for popup menu style -->
+        <item name="popupMenuStyle">@style/PopupMenuStyle</item>
+        <item name="android:popupMenuStyle">@style/PopupMenuStyle</item>
+        <item name="popupMenuBackground">@android:color/white</item>
+        <item name="colorControlNormal">@android:color/black</item>
+    </style>
+    <!-- Add this new style for popup menus with white background -->
+    <style name="PopupMenuStyle" parent="Widget.Material3.PopupMenu">
+        <item name="android:background">@android:color/white</item>
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+    <style name="Theme.EasyNotes" parent="Base.Theme.EasyNotes" />
+</resources>

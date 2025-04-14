@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/splashFragment">
+
+    <fragment
+        android:id="@+id/splashFragment"
+        android:name="com.example.easynotes.fragments.SplashFragment"
+        android:label="fragment_splash"
+        tools:layout="@layout/fragment_splash" >
+        <action
+            android:id="@+id/action_splashFragment_to_mainFragment"
+            app:destination="@id/mainFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.example.easynotes.fragments.MainFragment"
+        android:label="fragment_main"
+        tools:layout="@layout/fragment_main" >
+        <action
+            android:id="@+id/action_mainFragment_to_calenderFragment"
+            app:destination="@id/calenderFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_writeFragment"
+            app:destination="@id/writeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/calenderFragment"
+        android:name="com.example.easynotes.fragments.CalenderFragment"
+        android:label="CalenderFragment" />
+
+    <fragment
+        android:id="@+id/writeFragment"
+        android:name="com.example.easynotes.fragments.WriteFragment"
+        android:label="fragment_write"
+        tools:layout="@layout/fragment_write">
+        <argument
+            android:name="noteId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/allTabFragment"
+        android:name="com.example.easynotes.fragments.AllTabFragment"
+        android:label="fragment_all_tab"
+        tools:layout="@layout/fragment_all_tab" >
+        <action
+            android:id="@+id/action_allTabFragment_to_writeFragment"
+            app:destination="@id/writeFragment" />
+    </fragment>
+</navigation>

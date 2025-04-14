@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="mainAppColor">#FF7058</color>
+    <color name="orange">#A44527</color>
+    <color name="gray">#3C3C3C</color>
+    <color name="blue">#093B62</color>
+    <color name="light_gray">#575757</color>
+    <color name="cyan">#00BCD4</color>
+    <color name="ripple_color">#33000000</color> <!-- 20% black for ripple effect -->
+    <color name="selected_item_color">#FFFFFF</color>
+    <color name="main_app_light_color">#FFA499</color>
+    <color name="Green">#33691E</color> <!-- Light gray for selected state -->
+
+</resources>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="topActionBar" type="id" />
+    <item name="btnCheckmark" type="id" />
+    <item name="btnUndo" type="id" />
+    <item name="btnRedo" type="id" />
+    <item name="btnShare" type="id" />
+    <item name="btnMore" type="id" />
+    <item name="dateAndCategoryBar" type="id" />
+    <item name="tvDate" type="id" />
+    <item name="tvCategory" type="id" />
+</resources>

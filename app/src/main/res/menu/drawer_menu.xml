@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_all_notes"
+            android:icon="@drawable/ic_notes"
+            android:iconTint="@color/black"
+            android:title="All notes" />
+        <item
+            android:id="@+id/nav_calendar"
+            android:iconTint="@color/black"
+            android:icon="@drawable/ic_calendar"
+            android:title="Calendar" />
+        <item
+            android:id="@+id/nav_reminders"
+            android:iconTint="@color/black"
+            android:icon="@drawable/ic_reminders"
+            android:title="Reminders" />
+        <item
+            android:id="@+id/nav_archive"
+            android:iconTint="@color/black"
+            android:icon="@drawable/ic_archive"
+            android:title="Archive" />
+        <item
+            android:id="@+id/nav_trash"
+            android:iconTint="@color/black"
+            android:icon="@drawable/ic_trash"
+            android:title="Trash" />
+    </group>
+
+    <item android:title="p1">
+        <menu>
+            <item
+                android:id="@+id/nav_Favourites"
+                android:icon="@drawable/ic_reminders"
+                android:title="Favourites" />
+            <item
+                android:id="@+id/nav_Category"
+                android:icon="@drawable/ic_archive"
+                android:title="Category" />
+            <item
+                android:id="@+id/nav_Tags"
+                android:icon="@drawable/ic_tag"
+                android:title="Tags" />
+        </menu>
+    </item>
+
+    <item android:title="p2">
+        <menu>
+            <item
+                android:id="@+id/nav_Widget"
+                android:icon="@drawable/ic_widget"
+                android:title="Widget" />
+            <item
+                android:id="@+id/nav_syncbackup"
+                android:icon="@drawable/ic_sync"
+                android:title="Sync &amp; Backup" />
+            <item
+                android:id="@+id/nav_HelpCenter"
+                android:icon="@drawable/ic_help_center"
+                android:title="Help Center" />
+            <item
+                android:id="@+id/nav_settings"
+                android:icon="@drawable/ic_settings"
+                android:title="Settings" />
+
+        </menu>
+    </item>
+</menu>
