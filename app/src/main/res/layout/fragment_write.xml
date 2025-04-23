@@ -50,30 +50,34 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1" />
-
-        <ImageButton
-            android:id="@+id/btnUndo"
+        <LinearLayout
+            android:id="@+id/undoRedoContainer"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minWidth="48dp"
-            android:minHeight="48dp"
-            android:layout_gravity="center"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/undo"
-            android:padding="8dp"
-            android:src="@drawable/ic_undo" />
+            android:layout_height="48dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:baselineAligned="true">
 
-        <ImageButton
-            android:id="@+id/btnRedo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minWidth="48dp"
-            android:minHeight="48dp"
-            android:layout_gravity="center"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/redo"
-            android:padding="8dp"
-            android:src="@drawable/ic_redo" />
+            <ImageButton
+                android:id="@+id/btnUndo"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/undo"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_undo" />
+
+            <ImageButton
+                android:id="@+id/btnRedo"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/redo"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_redo" />
+        </LinearLayout>
 
         <Space
             android:layout_width="0dp"

@@ -24,15 +24,13 @@ class AllTabFragment : Fragment() {
     private lateinit var viewModel: NoteViewModel
     private lateinit var adapter: NoteAdapter
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentAllTabBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupRecyclerView()
         setupViewModel()
     }
@@ -40,7 +38,6 @@ class AllTabFragment : Fragment() {
     private fun setupRecyclerView() {
         adapter = NoteAdapter(
             onNoteClick = { note ->
-                // Navigate to WriteFragment with note ID
                 val bundle = Bundle().apply {
                     putLong("noteId", note.id)
                 }
@@ -57,11 +54,21 @@ class AllTabFragment : Fragment() {
                 )
                 viewModel.insert(duplicateNote)
                 Toast.makeText(requireContext(), "Note duplicated", Toast.LENGTH_SHORT).show()
-            })
+            }
+        )
 
         binding.recyclerViewNotes.apply {
             adapter = this@AllTabFragment.adapter
             layoutManager = LinearLayoutManager(context)
+        }
+    }
+
+    private fun setupViewModel() {
+        viewModel = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application))[NoteViewModel::class.java]
+
+        viewModel.allNotes.observe(viewLifecycleOwner) { notes ->
+            adapter.submitList(notes)
+            toggleEmptyView(notes.isEmpty())
         }
     }
 
@@ -76,29 +83,17 @@ class AllTabFragment : Fragment() {
             .setNegativeButton("Cancel", null)
             .show()
     }
-    private fun setupViewModel() {
-        viewModel = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application)
-        )[NoteViewModel::class.java]
-
-        viewModel.allNotes.observe(viewLifecycleOwner) { notes ->
-            adapter.submitList(notes)
-            toggleEmptyView(notes.isEmpty())
-        }
-    }
-
-
 
     private fun toggleEmptyView(isEmpty: Boolean) {
         if (isEmpty) {
-            // Show empty state with image
-            binding.emptyView.visibility = View.VISIBLE
+            binding.imageViewIllustration.visibility = View.VISIBLE
             binding.recyclerViewNotes.visibility = View.GONE
         } else {
-            // Hide empty state, show notes
-            binding.emptyView.visibility = View.GONE
+            binding.imageViewIllustration.visibility = View.GONE
             binding.recyclerViewNotes.visibility = View.VISIBLE
         }
     }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

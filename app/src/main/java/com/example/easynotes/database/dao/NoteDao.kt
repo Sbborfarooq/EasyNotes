@@ -1,5 +1,6 @@
 package com.example.easynotes.database.dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -28,4 +29,10 @@ interface NoteDao {
 
     @Query("SELECT * FROM notes WHERE id = :noteId")
     fun getNoteById(noteId: Long): Flow<Note>
+
+    @Dao
+    interface NoteDao {
+        @Query("SELECT * FROM notes WHERE category = :category ORDER BY date DESC")
+        fun getNotesByCategory(category: String): LiveData<List<Note>>
+    }
 }

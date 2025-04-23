@@ -10,7 +10,7 @@ data class Note(
     val id: Long = 0,
     val title: String,
     val content: String,
-    val category: String,
     val date: Long,
-    val color: Int
+    val color: Int,
+    val category: String = "Uncategorized",
 )

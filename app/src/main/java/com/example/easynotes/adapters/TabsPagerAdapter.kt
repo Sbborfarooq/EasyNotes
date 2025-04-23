@@ -13,27 +13,42 @@ import com.example.easynotes.fragments.HomeTabFragment
 import com.example.easynotes.fragments.WorkTabFragment
 import com.example.easynotes.models.TabInfo
 
-class TabsPagerAdapter(fragmentManager: FragmentManager, lifecycle: Lifecycle,
-       private val tabs: List<TabInfo>) : FragmentStateAdapter(fragmentManager, lifecycle) {
+class TabsPagerAdapter(
+    fragmentManager: FragmentManager,
+    lifecycle: Lifecycle,
+    private val tabs: List<TabInfo>
+) : FragmentStateAdapter(fragmentManager, lifecycle) {
 
     override fun getItemCount(): Int = tabs.size
 
     override fun createFragment(position: Int): Fragment {
-        // Create appropriate fragment based on tab type
-        return when (tabs[position].id) {
-            "all" -> AllTabFragment()
+        val tab = tabs[position]
+
+        return when (tab.id) {
+            "all" -> AllTabFragment().apply {
+                arguments = Bundle().apply {
+                    putString("ARG_TAB_ID", "all")
+                    putString("ARG_TAB_TITLE", tab.title)
+                }
+            }
             "home" -> HomeTabFragment()
             "work" -> WorkTabFragment()
             "bookmark" -> BookmarkTabFragment()
-            else -> {
-                // For dynamically added tabs, create a generic fragment
-                val fragment = GenericNotesFragment()
-                fragment.arguments = Bundle().apply {
-                    putString("TAB_ID", tabs[position].id)
-                    putString("TAB_TITLE", tabs[position].title)
+            else -> GenericNotesFragment().apply {
+                arguments = Bundle().apply {
+                    putString("ARG_TAB_ID", tab.category)
+                    putString("ARG_TAB_TITLE", tab.title)
                 }
-                fragment
             }
         }
     }
+
+    override fun getItemId(position: Int): Long {
+        return tabs[position].id.hashCode().toLong()
+    }
+
+    override fun containsItem(itemId: Long): Boolean {
+        return tabs.any { it.id.hashCode().toLong() == itemId }
+    }
 }
+

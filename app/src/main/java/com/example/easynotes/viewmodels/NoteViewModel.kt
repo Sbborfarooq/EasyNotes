@@ -23,15 +23,15 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
     init {
         val noteDao = AppDatabase.getDatabase(application).noteDao()
         repository = NoteRepository(noteDao)
-        allNotes = repository.allNotes.asLiveData()
+        allNotes = repository.allNotes
 
 
     }
 
     // Note-related functions
-    fun getNotesByCategory(category: String): LiveData<List<Note>> {
-        return repository.getNotesByCategory(category).asLiveData()
-    }
+    fun getNotesByCategory(category: String): LiveData<List<Note>> =
+        repository.getNotesByCategory(category)
+
 
     fun getNoteById(id: Long): LiveData<Note> {
         return repository.getNoteById(id).asLiveData()
@@ -49,6 +49,5 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
         repository.delete(note)
     }
 
-    // Tab management functions
 
 }

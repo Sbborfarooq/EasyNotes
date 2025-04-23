@@ -16,61 +16,67 @@ class TabsViewModel : ViewModel() {
     private val _tabs = MutableLiveData<List<TabInfo>>()
     val tabs: LiveData<List<TabInfo>> = _tabs
 
-
     private val tabsList = mutableListOf<TabInfo>()
 
     init {
         // Initialize with default tabs
-        tabsList.add(TabInfo("all", "All", type = TabType.TEXT))
-        tabsList.add(TabInfo("home", "Home", type = TabType.TEXT))
-        tabsList.add(TabInfo("work", "Work", type = TabType.TEXT))
-        tabsList.add(TabInfo("bookmark", null, R.drawable.ic_bookmark, TabType.ICON))
+        addDefaultTabs()
+    }
 
-        // Update LiveData with initial tabs
+    // Add this function
+    fun initializeTabs(initialTabs: List<TabInfo>) {
+        tabsList.clear()
+        tabsList.addAll(initialTabs)
         _tabs.value = tabsList.toList()
     }
 
     // Method to add a new tab
     fun addTab(tabInfo: TabInfo) {
-        tabsList.add(tabInfo)
+        // Ensure the category is set if not provided
+        val tabWithCategory = if (tabInfo.category == "Uncategorized") {
+            tabInfo.copy(category = tabInfo.title ?: "Uncategorized")
+        } else tabInfo
+
+        tabsList.add(tabWithCategory)
         _tabs.value = tabsList.toList()
     }
 
     // Method to remove a tab
     fun removeTab(tabId: String) {
-        tabsList.removeAll { it.id == tabId }
-        _tabs.value = tabsList.toList()
-    }
-
-    // Method to update a tab's title
-    fun updateTabTitle(tabId: String, newTitle: String) {
-        // Find the tab index
-        val tabIndex = tabsList.indexOfFirst { it.id == tabId }
-
-        // If found, update it
-        if (tabIndex != -1) {
-            val oldTab = tabsList[tabIndex]
-            // Create a new TabInfo with updated title but keeping other properties
-            val updatedTab = TabInfo(
-                id = oldTab.id,
-                title = newTitle,
-                iconResId = oldTab.iconResId,
-                type = oldTab.type
-            )
-
-
-            tabsList[tabIndex] = updatedTab
-
-            // Notify observers
+        // Don't allow removal of default tabs
+        if (!isDefaultTab(tabId)) {
+            tabsList.removeAll { it.id == tabId }
             _tabs.value = tabsList.toList()
         }
     }
 
+    // Method to update a tab's title
+    fun updateTabTitle(tabId: String, newTitle: String) {
+        // Don't allow updating default tabs
+        if (!isDefaultTab(tabId)) {
+            val tabIndex = tabsList.indexOfFirst { it.id == tabId }
+            if (tabIndex != -1) {
+                val oldTab = tabsList[tabIndex]
+                val updatedTab = TabInfo(
+                    id = oldTab.id,
+                    title = newTitle,
+                    iconResId = oldTab.iconResId,
+                    type = oldTab.type,
+                    category = newTitle // Update category to match new title
+                )
+                tabsList[tabIndex] = updatedTab
+                _tabs.value = tabsList.toList()
+            }
+        }
+    }
+
+    private fun isDefaultTab(tabId: String): Boolean {
+        return tabId in listOf("all", "home", "work", "bookmark")
+    }
 
     fun getTabPosition(tabId: String): Int {
         return tabsList.indexOfFirst { it.id == tabId }
     }
-
 
     fun getTabById(tabId: String): TabInfo? {
         return tabsList.find { it.id == tabId }
@@ -81,21 +87,23 @@ class TabsViewModel : ViewModel() {
         val prefs = context.getSharedPreferences("tabs_prefs", Context.MODE_PRIVATE)
         val editor = prefs.edit()
 
-        // Convert tabs to JSON
-        val gson = Gson()
-        val tabsJson = gson.toJson(tabsList)
-
-        editor.putString("saved_tabs", tabsJson)
-        editor.apply()
+        try {
+            val gson = Gson()
+            val tabsJson = gson.toJson(tabsList)
+            editor.putString("saved_tabs", tabsJson)
+            editor.apply()
+        } catch (e: Exception) {
+            Log.e("TabsViewModel", "Error saving tabs: ${e.message}")
+        }
     }
 
     // Method to load tabs from SharedPreferences
     fun loadTabs(context: Context) {
         val prefs = context.getSharedPreferences("tabs_prefs", Context.MODE_PRIVATE)
 
-        val tabsJson = prefs.getString("saved_tabs", null)
-        if (tabsJson != null) {
-            try {
+        try {
+            val tabsJson = prefs.getString("saved_tabs", null)
+            if (tabsJson != null) {
                 val gson = Gson()
                 val type = object : TypeToken<List<TabInfo>>() {}.type
                 val loadedTabs = gson.fromJson<List<TabInfo>>(tabsJson, type)
@@ -108,27 +116,32 @@ class TabsViewModel : ViewModel() {
                 if (tabsList.isEmpty()) {
                     addDefaultTabs()
                 }
-
-                // Notify observers
-                _tabs.value = tabsList.toList()
-            } catch (e: Exception) {
-                Log.e("TabsViewModel", "Error loading tabs: ${e.message}")
-                // Add default tabs in case of error
+            } else {
+                // Add default tabs if no saved tabs found
                 addDefaultTabs()
             }
-        } else {
-            // Add default tabs if no saved tabs found
+        } catch (e: Exception) {
+            Log.e("TabsViewModel", "Error loading tabs: ${e.message}")
             addDefaultTabs()
         }
+
+        // Notify observers
+        _tabs.value = tabsList.toList()
     }
 
     // Helper method to add default tabs
     private fun addDefaultTabs() {
         tabsList.clear()
-        tabsList.add(TabInfo("all", "All", type = TabType.TEXT))
-        tabsList.add(TabInfo("home", "Home", type = TabType.TEXT))
-        tabsList.add(TabInfo("work", "Work", type = TabType.TEXT))
-        tabsList.add(TabInfo("bookmark", null, R.drawable.ic_bookmark, TabType.ICON))
+        tabsList.add(TabInfo("all", "All", type = TabType.TEXT, category = "all"))
+        tabsList.add(TabInfo("home", "Home", type = TabType.TEXT, category = "Home"))
+        tabsList.add(TabInfo("work", "Work", type = TabType.TEXT, category = "Work"))
+        tabsList.add(TabInfo(
+            id = "bookmark",
+            title = null,
+            iconResId = R.drawable.ic_bookmark,
+            type = TabType.ICON,
+            category = "Bookmarked"
+        ))
         _tabs.value = tabsList.toList()
     }
 }

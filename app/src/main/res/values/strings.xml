@@ -43,4 +43,6 @@
     <string name="tab_name">Tab Name</string>
     <string name="rename">Rename</string>
     <string name="remove">Delete</string>
+    <string name="empty_notes_illustration">Home_illustration</string>
+    <string name="add_new_note">home_add_new_tab</string>
 </resources>

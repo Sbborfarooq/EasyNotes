@@ -53,4 +53,13 @@
             android:id="@+id/action_allTabFragment_to_writeFragment"
             app:destination="@id/writeFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/homeTabFragment"
+        android:name="com.example.easynotes.fragments.HomeTabFragment"
+        android:label="fragment_home_tab"
+        tools:layout="@layout/fragment_home_tab" >
+        <action
+            android:id="@+id/action_homeTabFragment_to_writeFragment"
+            app:destination="@id/writeFragment" />
+    </fragment>
 </navigation>

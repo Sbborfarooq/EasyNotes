@@ -3,6 +3,7 @@ package com.example.easynotes.fragments
 import android.app.AlertDialog
 import android.graphics.Color
 import android.graphics.Typeface
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -57,15 +58,20 @@ class MainFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupInitialTabs()
+
         val drawerLayout = binding.drawerlayout
         val toolbar = binding.materialToolbar
 
-        // Load saved tabs when the view is created
-        viewModel.loadTabs(requireContext())
+        setupInitialTabs()
 
         toolbar.setNavigationOnClickListener {
             drawerLayout.openDrawer(GravityCompat.START)//to left side
         }
+
+        // Load saved tabs when the view is created
+        viewModel.loadTabs(requireContext())
+
 
         viewModel.tabs.observe(viewLifecycleOwner) { tabs ->
             setupTabsWithViewPager(tabs)
@@ -98,8 +104,9 @@ class MainFragment : Fragment() {
             findNavController().navigate(R.id.action_mainFragment_to_writeFragment)
         }
 
-        // Optional: Add long press menu to tabs for management
+
         setupTabLongPressMenu()
+
     }
 
     // Add this method to save tabs when the fragment is paused
@@ -129,7 +136,6 @@ class MainFragment : Fragment() {
         // Disable ViewPager2 swiping to prevent accidental switching
         binding.viewPager.isUserInputEnabled = false
 
-        // Set tab icon tint
         val tabIconTint = ContextCompat.getColorStateList(requireContext(), R.color.black)
         binding.tabLayout.tabIconTint = tabIconTint
 
@@ -163,22 +169,16 @@ class MainFragment : Fragment() {
             binding.tabLayout.addTab(newTab)
         }
 
-        // Add the "+" tab
         val plusTab = binding.tabLayout.newTab().setText("+")
         binding.tabLayout.addTab(plusTab)
 
-        // Style tabs
         styleTabs(tabs)
 
-        // Select the first tab initially
+
         if (tabs.isNotEmpty()) {
             binding.viewPager.currentItem = 0
             binding.tabLayout.selectTab(binding.tabLayout.getTabAt(0))
         }
-
-        // IMPORTANT: Use a variable in the fragment class to track dialog state
-        // Add this as a class member:
-        // private var isAddTabDialogShowing = false
 
         // Remove any existing listeners to avoid duplicates
         clearTabSelectionListeners()
@@ -257,6 +257,36 @@ class MainFragment : Fragment() {
         })
     }
 
+    private fun setupInitialTabs() {
+        val initialTabs = listOf(
+            TabInfo(
+                id = "all",
+                title = "All",
+                type = TabType.TEXT,
+                category = "all"
+            ),
+            TabInfo(
+                id = "home",
+                title = "Home",
+                type = TabType.TEXT,
+                category = "Home"
+            ),
+            TabInfo(
+                id = "work",
+                title = "Work",
+                type = TabType.TEXT,
+                category = "Work"
+            ),
+            TabInfo(
+                id = "bookmark",
+                title = null,
+                iconResId = R.drawable.ic_bookmark,
+                type = TabType.ICON,
+                category = "Bookmarked"
+            )
+        )
+        viewModel.initializeTabs(initialTabs)
+    }
 
     private fun clearTabSelectionListeners() {
         // Get the field containing listeners
@@ -386,7 +416,7 @@ class MainFragment : Fragment() {
         // Prevent canceling by touching outside
         dialog.setCanceledOnTouchOutside(false)
 
-        dialog.setOnShowListener {
+        dialog.setOnShowListener { dialogInterface ->
             dialog.window?.setBackgroundDrawableResource(android.R.color.white)
 
             // Override positive button to validate
@@ -397,7 +427,12 @@ class MainFragment : Fragment() {
                 if (tabName.isNotEmpty()) {
                     // Add the new tab
                     val newTabId = "custom_${System.currentTimeMillis()}"
-                    viewModel.addTab(TabInfo(newTabId, tabName, type = TabType.TEXT))
+                    viewModel.addTab(TabInfo(
+                        id = newTabId,
+                        title = tabName,
+                        type = TabType.TEXT,
+                        category = tabName // Use the tab name as category
+                    ))
                     saveTabsState()
 
                     // Mark that a tab was added
@@ -434,17 +469,12 @@ class MainFragment : Fragment() {
         dialog.show()
     }
 
-
     private fun setupTabLongPressMenu() {
-        // We'll attach long press listeners whenever tabs change
         viewModel.tabs.observe(viewLifecycleOwner) { tabs ->
-            // Use post to ensure TabLayout is ready
             binding.tabLayout.post {
-                // Make sure TabLayout is properly initialized
                 if (binding.tabLayout.tabCount > 0) {
                     attachLongPressListenersToTabs(tabs)
                 } else {
-                    // If tabs aren't ready yet, try again after a delay
                     Handler(Looper.getMainLooper()).postDelayed({
                         attachLongPressListenersToTabs(tabs)
                     }, 100)
@@ -460,32 +490,26 @@ class MainFragment : Fragment() {
 
             // Loop through each tab
             for (i in 0 until tabLayout.tabCount - 1) { // Exclude the + tab
-                // Skip default tabs (assuming first 4 are default)
-                if (i > 3 && i < tabs.size) { // Make sure we don't go out of bounds
-                    val tabView = tabStrip.getChildAt(i)
+                val tabView = tabStrip.getChildAt(i)
 
-                    // Make sure we have a valid tab info
-                    val tabInfo = if (i < tabs.size) tabs[i] else continue
+                if (i > 3 && i < tabs.size) { // Custom tabs only
+                    val tabInfo = tabs[i]
 
                     // Remove any existing listeners to avoid duplicates
                     tabView.setOnLongClickListener(null)
 
                     // Set new long press listener
                     tabView.setOnLongClickListener { view ->
-                        // Remember which tab had the long press
                         val longPressedTabPosition = i
 
-                        // Show popup menu with custom styling
                         val popup = PopupMenu(requireContext(), view)
                         popup.menuInflater.inflate(R.menu.menu_tab_options, popup.menu)
 
-                        // Apply custom styling to popup menu
                         try {
                             val menuHelper = PopupMenu::class.java.getDeclaredField("mPopup")
                             menuHelper.isAccessible = true
                             val menuPopupHelper = menuHelper.get(popup)
 
-                            // Force icons to show
                             val method = menuPopupHelper.javaClass.getDeclaredMethod("setForceShowIcon", Boolean::class.java)
                             method.isAccessible = true
                             method.invoke(menuPopupHelper, true)
@@ -493,7 +517,6 @@ class MainFragment : Fragment() {
                             Log.e("TabsDebug", "Error styling popup: ${e.message}")
                         }
 
-                        // Style each menu item to ensure text is black
                         for (j in 0 until popup.menu.size()) {
                             val item = popup.menu.getItem(j)
                             val spanString = SpannableString(item.title.toString())
@@ -501,26 +524,19 @@ class MainFragment : Fragment() {
                             item.title = spanString
                         }
 
-                        // Set a flag to prevent dialog from showing after menu actions
                         isAddTabDialogShowing = true
 
                         popup.setOnMenuItemClickListener { item ->
                             when (item.itemId) {
                                 R.id.action_rename_tab -> {
-                                    // Dismiss popup first
                                     popup.dismiss()
-
-                                    // Then show rename dialog after a short delay
                                     Handler(Looper.getMainLooper()).postDelayed({
                                         showRenameTabDialog(tabInfo, longPressedTabPosition)
                                     }, 100)
                                     true
                                 }
                                 R.id.action_delete_tab -> {
-                                    // Dismiss popup first
                                     popup.dismiss()
-
-                                    // Then show delete dialog after a short delay
                                     Handler(Looper.getMainLooper()).postDelayed({
                                         showDeleteTabDialog(tabInfo, longPressedTabPosition)
                                     }, 100)
@@ -534,10 +550,16 @@ class MainFragment : Fragment() {
                         true
                     }
 
-                    // Add a visual indication that this tab has a long press menu
                     tabView.isHapticFeedbackEnabled = true
-                }
+                } else {
+                    // Disable long click + clear tooltip on default tabs
+                    tabView.setOnLongClickListener(null)
+                    tabView.isLongClickable = false
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        tabView.tooltipText = null
+                    }                }
             }
+
         } catch (e: Exception) {
             Log.e("TabsDebug", "Error attaching long press listeners: ${e.message}", e)
         }
