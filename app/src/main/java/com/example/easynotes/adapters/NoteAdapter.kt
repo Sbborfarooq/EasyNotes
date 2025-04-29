@@ -93,15 +93,8 @@ class NoteAdapter(private val onNoteClick: (Note) -> Unit, private val onNoteDel
                         true
                     }
                     R.id.action_duplicate -> {
-                        // Simply create a duplicate note directly in the adapter
-                        val duplicateNote = note.copy(
-                            id = 0, // Set to 0 to make it a new note
-                            title = note.title + " (Copy)",
-                            date = System.currentTimeMillis()
-                        )
-                        // Use the callback if you have one for this
-                        onNoteDuplicate?.invoke(duplicateNote)
-                            ?: Toast.makeText(view.context, "Duplicate feature not implemented", Toast.LENGTH_SHORT).show()
+                        // Call the callback and let the fragment handle the duplication
+                        onNoteDuplicate(note)
                         true
                     }
                     R.id.action_add_widget -> {

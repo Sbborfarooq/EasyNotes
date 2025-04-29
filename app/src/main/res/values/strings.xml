@@ -45,4 +45,7 @@
     <string name="remove">Delete</string>
     <string name="empty_notes_illustration">Home_illustration</string>
     <string name="add_new_note">home_add_new_tab</string>
+    <string name="next_month">Next month</string>
+    <string name="sunday">SUN</string>
+    <string name="no_notes_for_this_date">No notes for this date</string>
 </resources>

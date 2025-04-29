@@ -35,4 +35,7 @@ interface NoteDao {
         @Query("SELECT * FROM notes WHERE category = :category ORDER BY date DESC")
         fun getNotesByCategory(category: String): LiveData<List<Note>>
     }
+
+    @Query("SELECT * FROM notes WHERE date LIKE :datePattern ORDER BY date DESC")
+    fun getNotesByDate(datePattern: String): Flow<List<Note>>
 }

@@ -22,5 +22,14 @@
         <item name="android:textColor">@android:color/black</item>
     </style>
 
+    <style name="CalendarDayOfWeek">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/gray</item>
+    </style>
+
     <style name="Theme.EasyNotes" parent="Base.Theme.EasyNotes" />
 </resources>

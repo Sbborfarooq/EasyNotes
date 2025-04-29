@@ -7,19 +7,23 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.easynotes.R
@@ -29,11 +33,7 @@ import com.example.easynotes.models.TabInfo
 import com.example.easynotes.models.TabType
 import com.example.easynotes.viewmodels.TabsViewModel
 import com.google.android.material.tabs.TabLayout
-import android.text.SpannableString
 import kotlin.math.min
-import android.text.style.ForegroundColorSpan
-import android.widget.LinearLayout
-import androidx.fragment.app.DialogFragment
 
 
 class MainFragment : Fragment() {
@@ -107,6 +107,26 @@ class MainFragment : Fragment() {
 
         setupTabLongPressMenu()
 
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                when {
+                    binding.drawerlayout.isDrawerOpen(GravityCompat.START) -> {
+                        // If drawer is open, close it first
+                        binding.drawerlayout.closeDrawer(GravityCompat.START)
+                    }
+                    binding.viewPager.currentItem != 0 -> {
+                        // If not on the first tab (All), go to the first tab
+                        binding.viewPager.currentItem = 0
+                        binding.tabLayout.getTabAt(0)?.select()
+                    }
+                    else -> {
+                        // If on the first tab, exit the app directly
+                        isEnabled = false
+                        requireActivity().finish() // This will exit the app directly
+                    }
+                }
+            }
+        })
     }
 
     // Add this method to save tabs when the fragment is paused
