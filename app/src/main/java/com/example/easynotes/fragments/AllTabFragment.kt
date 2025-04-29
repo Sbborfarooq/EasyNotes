@@ -47,13 +47,28 @@ class AllTabFragment : Fragment() {
                 showDeleteConfirmationDialog(note)
             },
             onNoteDuplicate = { note ->
-                val duplicateNote = note.copy(
-                    id = 0,
-                    title = note.title + " (Copy)",
-                    date = System.currentTimeMillis()
-                )
-                viewModel.insert(duplicateNote)
-                Toast.makeText(requireContext(), "Note duplicated", Toast.LENGTH_SHORT).show()
+                try {
+                    // Create a duplicate note with the current timestamp
+                    val duplicateNote = note.copy(
+                        id = 0, // Ensure ID is 0 for new note
+                        title = note.title + " (Copy)",
+                        date = System.currentTimeMillis()
+                    )
+
+                    // Log the duplicate note details
+                    Log.d("AllTabFragment", "Duplicating note: Original ID=${note.id}, Title=${note.title}")
+                    Log.d("AllTabFragment", "New duplicate: ID=${duplicateNote.id}, Title=${duplicateNote.title}")
+
+                    // Insert the duplicate note
+                    viewModel.insert(duplicateNote)
+
+                    // Show success message
+                    Toast.makeText(requireContext(), "Note duplicated", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    // Log the error and show error message
+                    Log.e("AllTabFragment", "Error duplicating note", e)
+                    Toast.makeText(requireContext(), "Failed to duplicate note: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             }
         )
 
@@ -67,8 +82,17 @@ class AllTabFragment : Fragment() {
         viewModel = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application))[NoteViewModel::class.java]
 
         viewModel.allNotes.observe(viewLifecycleOwner) { notes ->
-            adapter.submitList(notes)
-            toggleEmptyView(notes.isEmpty())
+            try {
+                // Sort notes by date in descending order (newest first)
+                val sortedNotes = notes.sortedByDescending { it.date }
+                adapter.submitList(sortedNotes)
+                toggleEmptyView(notes.isEmpty())
+
+                // Log for debugging
+                Log.d("AllTabFragment", "Notes updated: ${notes.size} notes")
+            } catch (e: Exception) {
+                Log.e("AllTabFragment", "Error updating notes list", e)
+            }
         }
     }
 

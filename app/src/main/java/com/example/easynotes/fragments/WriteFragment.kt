@@ -35,6 +35,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -48,11 +49,9 @@ class WriteFragment : Fragment() {
     private var currentNoteColor = 0
     private var currentCategory = "Uncategorized"
 
-    // Variables for edit mode
     private var isEditMode = false
     private var existingNoteId = 0L
 
-    // Define a state class to track changes
     private data class TextState(
         val title: String,
         val content: String,
@@ -65,6 +64,9 @@ class WriteFragment : Fragment() {
     private var isUndoRedoAction = false
     private val handler = Handler(Looper.getMainLooper())
     private var textChangeRunnable: Runnable? = null
+
+    private var selectedNoteDate: Long? = null
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentWriteBinding.inflate(inflater, container, false)
@@ -116,28 +118,32 @@ class WriteFragment : Fragment() {
             }
 
             override fun afterTextChanged(s: Editable?) {
-                if (!isUndoRedoAction) {
+                if (!isUndoRedoAction && isAdded && !isRemoving) {
                     textChangeRunnable = Runnable {
-                        val currentState = TextState(
-                            title = binding.etTitle.text.toString(),
-                            content = binding.etContent.text.toString(),
-                            titleCursorPosition = binding.etTitle.selectionStart,
-                            contentCursorPosition = binding.etContent.selectionStart
-                        )
+                        if (isAdded && _binding != null) {  // Check if fragment is still attached and binding is valid
+                            val currentState = TextState(
+                                title = binding.etTitle.text.toString(),
+                                content = binding.etContent.text.toString(),
+                                titleCursorPosition = binding.etTitle.selectionStart,
+                                contentCursorPosition = binding.etContent.selectionStart
+                            )
 
-                        // Only add to stack if there's an actual change
-                        if (undoStack.isEmpty() || undoStack.peek().title != currentState.title ||
-                            undoStack.peek().content != currentState.content) {
-                            undoStack.push(currentState)
-                            redoStack.clear() // Clear redo stack when new change is made
-                            updateUndoRedoButtonStates()
+                            // Only add to stack if there's an actual change
+                            if (undoStack.isEmpty() || undoStack.peek().title != currentState.title ||
+                                undoStack.peek().content != currentState.content) {
+                                undoStack.push(currentState)
+                                redoStack.clear() // Clear redo stack when new change is made
+                                updateUndoRedoButtonStates()
+                            }
                         }
                     }
                     handler.postDelayed(textChangeRunnable!!, 100) // Shorter delay for more granular changes
                 }
 
                 // Update button states based on content
-                updateUndoRedoButtonStates()
+                if (isAdded && _binding != null) {
+                    updateUndoRedoButtonStates()
+                }
             }
         }
 
@@ -156,28 +162,32 @@ class WriteFragment : Fragment() {
             }
 
             override fun afterTextChanged(s: Editable?) {
-                if (!isUndoRedoAction) {
+                if (!isUndoRedoAction && isAdded && !isRemoving) {
                     textChangeRunnable = Runnable {
-                        val currentState = TextState(
-                            title = binding.etTitle.text.toString(),
-                            content = binding.etContent.text.toString(),
-                            titleCursorPosition = binding.etTitle.selectionStart,
-                            contentCursorPosition = binding.etContent.selectionStart
-                        )
+                        if (isAdded && _binding != null) {  // Check if fragment is still attached and binding is valid
+                            val currentState = TextState(
+                                title = binding.etTitle.text.toString(),
+                                content = binding.etContent.text.toString(),
+                                titleCursorPosition = binding.etTitle.selectionStart,
+                                contentCursorPosition = binding.etContent.selectionStart
+                            )
 
-                        // Only add to stack if there's an actual change
-                        if (undoStack.isEmpty() || undoStack.peek().title != currentState.title ||
-                            undoStack.peek().content != currentState.content) {
-                            undoStack.push(currentState)
-                            redoStack.clear() // Clear redo stack when new change is made
-                            updateUndoRedoButtonStates()
+                            // Only add to stack if there's an actual change
+                            if (undoStack.isEmpty() || undoStack.peek().title != currentState.title ||
+                                undoStack.peek().content != currentState.content) {
+                                undoStack.push(currentState)
+                                redoStack.clear() // Clear redo stack when new change is made
+                                updateUndoRedoButtonStates()
+                            }
                         }
                     }
                     handler.postDelayed(textChangeRunnable!!, 100) // Shorter delay for more granular changes
                 }
 
                 // Update button states based on content
-                updateUndoRedoButtonStates()
+                if (isAdded && _binding != null) {
+                    updateUndoRedoButtonStates()
+                }
             }
         }
 
@@ -186,6 +196,8 @@ class WriteFragment : Fragment() {
     }
 
     private fun updateUndoRedoButtonStates() {
+        if (_binding == null) return  // Safety check
+
         // Check if there's content to determine button states
         val hasContent = binding.etTitle.text.isNotEmpty() || binding.etContent.text.isNotEmpty()
 
@@ -201,6 +213,8 @@ class WriteFragment : Fragment() {
     }
 
     private fun undo() {
+        if (_binding == null) return  // Safety check
+
         if (undoStack.size > 1) { // Keep at least one state to prevent empty stack
             val currentState = TextState(
                 title = binding.etTitle.text.toString(),
@@ -233,6 +247,8 @@ class WriteFragment : Fragment() {
     }
 
     private fun redo() {
+        if (_binding == null) return  // Safety check
+
         if (redoStack.isNotEmpty()) {
             val currentState = TextState(
                 title = binding.etTitle.text.toString(),
@@ -265,8 +281,10 @@ class WriteFragment : Fragment() {
 
     private fun checkForExistingNote() {
         val noteId = arguments?.getLong("noteId", -1L) ?: -1L
+        val selectedDateString = arguments?.getString("selectedDate")
 
         if (noteId != -1L) {
+            // Editing an existing note
             isEditMode = true
             existingNoteId = noteId
 
@@ -301,6 +319,52 @@ class WriteFragment : Fragment() {
                     updateUndoRedoButtonStates()
                 }
             }
+        } else if (selectedDateString != null) {
+            // Creating a new note from calendar with a specific date
+            isEditMode = false
+
+            try {
+                // Parse the selected date string
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val selectedDate = dateFormat.parse(selectedDateString)
+
+                if (selectedDate != null) {
+                    // Set the time to current time (keeping the selected date)
+                    val calendar = Calendar.getInstance()
+                    val timeCalendar = Calendar.getInstance()
+
+                    calendar.time = selectedDate
+                    // Set hours, minutes, seconds from current time
+                    calendar.set(Calendar.HOUR_OF_DAY, timeCalendar.get(Calendar.HOUR_OF_DAY))
+                    calendar.set(Calendar.MINUTE, timeCalendar.get(Calendar.MINUTE))
+                    calendar.set(Calendar.SECOND, timeCalendar.get(Calendar.SECOND))
+
+                    // Store this date to use when saving the note
+                    selectedNoteDate = calendar.timeInMillis
+
+                    // Update the date display
+                    val displayFormat = SimpleDateFormat("dd/MM, HH:mm a", Locale.getDefault())
+                    binding.tvDate.text = displayFormat.format(calendar.time)
+
+                    // Log for debugging
+                    Log.d("WriteFragment", "Creating note for selected date: $selectedDateString")
+                }
+            } catch (e: Exception) {
+                Log.e("WriteFragment", "Error parsing date: $selectedDateString", e)
+
+                // Fallback to current date/time if there's an error
+                val currentDate = Date()
+                val dateFormat = SimpleDateFormat("dd/MM, HH:mm a", Locale.getDefault())
+                binding.tvDate.text = dateFormat.format(currentDate)
+            }
+        } else {
+            // Regular new note (not from calendar)
+            isEditMode = false
+
+            // Set current date/time
+            val currentDate = Date()
+            val dateFormat = SimpleDateFormat("dd/MM, HH:mm a", Locale.getDefault())
+            binding.tvDate.text = dateFormat.format(currentDate)
         }
     }
 
@@ -337,6 +401,8 @@ class WriteFragment : Fragment() {
     }
 
     private fun showShareOptionsDialog() {
+        if (_binding == null) return  // Safety check
+
         val shareDialog = Dialog(requireContext())
         shareDialog.setContentView(R.layout.share_options_dialog)
 
@@ -372,6 +438,8 @@ class WriteFragment : Fragment() {
     }
 
     private fun shareAsImage() {
+        if (_binding == null) return  // Safety check
+
         try {
             // Get the ScrollView that contains the note content
             val scrollView = binding.scrollView
@@ -428,6 +496,8 @@ class WriteFragment : Fragment() {
     }
 
     private fun shareAsText() {
+        if (_binding == null) return  // Safety check
+
         val title = binding.etTitle.text.toString()
         val content = binding.etContent.text.toString()
         val textToShare = if (content.isNotEmpty()) "$title\n\n$content" else title
@@ -458,52 +528,77 @@ class WriteFragment : Fragment() {
     }
 
     private fun saveNote() {
-        val title = binding.etTitle.text.toString()
-        val content = binding.etContent.text.toString()
+        if (_binding == null) return  // Safety check
 
-        if (title.isBlank() && content.isBlank()) {
-            Toast.makeText(context, "Note cannot be empty", Toast.LENGTH_SHORT).show()
-            return
+        try {
+            val title = binding.etTitle.text.toString().trim()
+            val content = binding.etContent.text.toString().trim()
+
+            if (title.isBlank() && content.isBlank()) {
+                Toast.makeText(context, "Note cannot be empty", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // Create a safe title if empty
+            val safeTitle = if (title.isBlank()) {
+                val contentPreview = content.take(20) + if (content.length > 20) "..." else ""
+                contentPreview
+            } else {
+                title
+            }
+
+            // Use selectedNoteDate if available, otherwise use current time
+            val noteDate = selectedNoteDate ?: System.currentTimeMillis()
+
+            // Generate date string for filtering
+            val dateString = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(noteDate))
+
+            val note = if (isEditMode) {
+                Note(
+                    id = existingNoteId,
+                    title = safeTitle,
+                    content = content,
+                    category = currentCategory,
+                    date = noteDate,
+                    color = currentNoteColor,
+                    dateString = dateString
+                )
+            } else {
+                Note(
+                    title = safeTitle,
+                    content = content,
+                    category = currentCategory,
+                    date = noteDate,
+                    color = currentNoteColor,
+                    dateString = dateString
+                )
+            }
+
+            Log.d("WriteFragment", "Saving note: ID=${note.id}, Title=${note.title}, Date=${note.dateString}")
+
+            if (isEditMode) {
+                viewModel.update(note)
+            } else {
+                viewModel.insert(note)
+            }
+
+            Toast.makeText(context, if (isEditMode) "Note updated" else "Note saved", Toast.LENGTH_SHORT).show()
+
+            // Remove all callbacks to prevent accessing binding after fragment is destroyed
+            handler.removeCallbacksAndMessages(null)
+
+            // Navigate back
+            findNavController().navigateUp()
+
+        } catch (e: Exception) {
+            Log.e("WriteFragment", "Error saving note", e)
+            Toast.makeText(context, "Error saving note: ${e.message}", Toast.LENGTH_LONG).show()
         }
-
-        val note = if (isEditMode) {
-            Note(
-                id = existingNoteId,
-                title = title,
-                content = content,
-                category = currentCategory,  // Ensure currentCategory is used
-                date = System.currentTimeMillis(),
-                color = currentNoteColor
-            )
-        } else {
-            Note(
-                title = title,
-                content = content,
-                category = currentCategory,  // Ensure currentCategory is used
-                date = System.currentTimeMillis(),
-                color = currentNoteColor
-            )
-        }
-
-        if (isEditMode) {
-            viewModel.update(note)
-            Toast.makeText(context, "Note updated", Toast.LENGTH_SHORT).show()
-        } else {
-            viewModel.insert(note)
-            Toast.makeText(context, "Note saved", Toast.LENGTH_SHORT).show()
-        }
-
-        findNavController().navigateUp()
-    }
-
-    private fun getCurrentTabCategory(): String {
-        val navController = findNavController()
-        val currentDestination = navController.currentDestination
-        // Get the current tab from your MainFragment
-        return arguments?.getString("category") ?: "all"
     }
 
     private fun showCategoryDialog() {
+        if (_binding == null) return  // Safety check
+
         val categories = arrayOf("Uncategorized", "Home", "Work")
 
         AlertDialog.Builder(requireContext())
@@ -517,8 +612,17 @@ class WriteFragment : Fragment() {
             .show()
     }
 
+    override fun onPause() {
+        super.onPause()
+        // Remove all callbacks when the fragment is paused
+        handler.removeCallbacksAndMessages(null)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        // Remove all callbacks when the view is destroyed
+        handler.removeCallbacksAndMessages(null)
+        // Clear the binding
         _binding = null
     }
 }

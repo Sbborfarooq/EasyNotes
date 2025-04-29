@@ -28,4 +28,8 @@ class NoteRepository(private val noteDao: NoteDao) {
     suspend fun delete(note: Note) {
         noteDao.deleteNote(note)
     }
+
+    fun getNotesByDate(dateString: String): Flow<List<Note>> {
+        return noteDao.getNotesByDate(dateString)
+    }
 }
